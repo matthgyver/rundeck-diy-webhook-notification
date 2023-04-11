@@ -1,18 +1,18 @@
 /*
  * MIT License
- * 
+ *
  * Copyright (c) 2018 Trevor Highfill
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,29 +43,92 @@ import java.net.URL;
 @Plugin(service="Notification",name="DIYWebhookNotificationPlugin")
 @PluginDescription(title="DIY Webhook", description="The DIY(do it yourself) webhook notification plugin that lets you supply your own custom messages.\n___\nProject lives [here](https://github.com/theque5t/rundeck-diy-webhook-notification)\n___\n")
 public class DIYWebhookNotificationPlugin implements NotificationPlugin{
-	
+
 	@PluginProperty(
-			name = "webhookUrl",
-			title = "Webhook URL",
-			description = "The webhook url. Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX",
+		name = "environment",
+		title = "Environment",
+		description = "Environment execution. (if set to 'pre-prod', the webhook Pre Prod URL will be used else the prod URL)",
+		required = false)
+	private String environment;
+
+	@PluginProperty(
+			name = "webhookProdUrl",
+			title = "Webhook Prod URL",
+			description = "The webhook url for production environment. Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX",
 			required = false)
 	@RenderingOption(key = DISPLAY_TYPE_KEY, value = "PASSWORD")
-	private String webhookUrl;
-	
+	private String webhookProdUrl;
+
+	@PluginProperty(
+		name = "webhookPreProdUrl",
+		title = "Webhook Pre Prod URL",
+		description = "The webhook url for pre-production environment. Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX",
+		required = false)
+	@RenderingOption(key = DISPLAY_TYPE_KEY, value = "PASSWORD")
+	private String webhookPreProdUrl;
+
+
+	@PluginProperty(
+		name = "requestMethod",
+		title = "HTTP Method",
+		description = "HTTP request method. Example: POST, PUT, PATCH ...",
+		defaultValue = "POST",
+		required = false)
+	private String requestMethod;
+
+	@PluginProperty(
+		name = "authentication",
+		title = "Authentication",
+		description = "Authentication method (None|Basic|Bearer)",
+		// selectValues = {"None","Basic","Bearer"},
+		defaultValue = "None",
+		required = true)
+	private String authentication;
+
+	@PluginProperty(
+		name = "user",
+		title = "User",
+		description = "User login (Basic method only)",
+		required = false)
+	private String user;
+
+	@PluginProperty(
+		name = "password",
+		title = "Password",
+		description = "User password (Basic method only)",
+		required = false)
+	private String password;
+
+	@PluginProperty(
+		name = "token",
+		title = "Token",
+		description = "The authorization token (Bearer method only)",
+		required = false)
+	private String token;
+
     @PluginProperty(
     		name = "contentType",
     		title = "Content Type",
     		description = "The content type header. Example: application/json",
+			defaultValue = "application/json",
     		required = false)
     private String contentType;
-    
+
+	@PluginProperty(
+		name = "accept",
+		title = "Accept",
+		description = "The accept type header. Example: application/json",
+		defaultValue = "application/json",
+		required = false)
+	private String accept;
+
     @PluginProperty(
     		name = "messageBody",
     		title = "Message Body",
     		description = "The message body. Example: {\"text\":\"Hello world!\"}  \n"
     					+ "___  \n"
     					+ "#### Building the Message  \n"
-    					+ "The execution order and summary of what occurs when building the final message body is as follows:  \n" 
+    					+ "The execution order and summary of what occurs when building the final message body is as follows:  \n"
     					+ " 1. Any embedded property references will be replaced with the runtime value.  \n"
     					+ " 2. Any execution data references will be replaced with the runtime value.  \n"
     					+ " 3. Any template markup will be rendered.  \n"
@@ -110,30 +173,30 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
   		     super(message);
   	  }
   	}
-    
+
 	private String formatMessage(String theMessageBody, Map theExecutionData) {
-		
+
 		Pattern executionDataReferencePattern = Pattern.compile("\\$([a-z].*?[a-z])\\$");
         Matcher executionDataReferenceMatches = executionDataReferencePattern.matcher(theMessageBody);
         StringBuffer theMessageBodyWithExecutionDataBuffer = new StringBuffer(theMessageBody.length());
-        
+
         while(executionDataReferenceMatches.find())
         {
         	String executionDataReferenceMatch = executionDataReferenceMatches.group(1);
 	        String[] executionDataReferenceCommand = executionDataReferenceMatch.split("\\.");
 	        Map theCurrentMap = theExecutionData;
-	        
+
 	        int i = 0;
 	        do {
 	        	String theCurrentKey = executionDataReferenceCommand[i];
 	        	i++;
-	        	
+
 	        	if(theCurrentMap.containsKey(theCurrentKey) && i < executionDataReferenceCommand.length)
 	        	{
 	        		theCurrentMap = (Map) theCurrentMap.get(theCurrentKey);
 	        	}
 	        	else if (theCurrentMap.containsKey(theCurrentKey))
-	        	{	        		
+	        	{
 	        		executionDataReferenceMatches.appendReplacement(theMessageBodyWithExecutionDataBuffer, theCurrentMap.get(theCurrentKey)== null ? "" : theCurrentMap.get(theCurrentKey).toString());
 	        	}
 	        	else if (theCurrentKey.equals("execution") && executionDataReferenceCommand.length == 1)
@@ -148,56 +211,74 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 	    	}
 	        while(i < executionDataReferenceCommand.length);
         }
-        
+
         executionDataReferenceMatches.appendTail(theMessageBodyWithExecutionDataBuffer);
         String theMessageBodyWithExecutionData = theMessageBodyWithExecutionDataBuffer.toString();
-        
+
         Template theMessageBodyAsTemplate = Template.parse(theMessageBodyWithExecutionData);
 		String theNewMessage = theMessageBodyAsTemplate.render();
-        
+
         return theNewMessage;
 	}
-    
-	private String sendMessage(String theWebhookUrl, String theContentType, String theFormattedMessage) throws IOException, CustomMessageException {
-		
-		HttpURLConnection connectionToWebhook = (HttpURLConnection) new URL(theWebhookUrl).openConnection();
-		
+
+	private String sendMessage(String theEnvironment, String theWebhookProdUrl, String theWebhookPreProdUrl, String theRequestMethod, String theAuthentication, String theUser, String thePassword, String theToken, String theContentType, String theAccept, String theFormattedMessage) throws IOException, CustomMessageException {
+
+		HttpURLConnection connectionToWebhook;
+
+		if (theEnvironment == "pre-prod"){
+			connectionToWebhook = (HttpURLConnection) new URL(theWebhookPreProdUrl).openConnection();
+		}
+		else{
+			connectionToWebhook = (HttpURLConnection) new URL(theWebhookProdUrl).openConnection();
+		}
+
 		connectionToWebhook.setConnectTimeout(5000);
 		connectionToWebhook.setReadTimeout(5000);
-		connectionToWebhook.setRequestMethod("POST");
+		connectionToWebhook.setRequestMethod(theRequestMethod);
+		if (theAuthentication != "None"){
+			String authenticationStr = theAuthentication + " ";
+			if (theAuthentication == "Basic"){
+				authenticationStr += Base64.getEncoder().encodeToString((theUser+":"+thePassword).getBytes());
+			}
+			else if (theAuthentication == "Bearer"){
+				authenticationStr += theToken;
+			}
+			connectionToWebhook.setRequestProperty("Authorization", authenticationStr);
+		}
 		connectionToWebhook.setRequestProperty("Content-type", theContentType);
+		connectionToWebhook.setRequestProperty("Accept", theAccept);
 		connectionToWebhook.setDoOutput(true);
-		
+
 		DataOutputStream bodyOfRequest = new DataOutputStream(connectionToWebhook.getOutputStream());
 		bodyOfRequest.write(theFormattedMessage.getBytes("UTF-8"));
 		bodyOfRequest.flush();
 		bodyOfRequest.close();
-		
+
 		int responseCode = connectionToWebhook.getResponseCode();
 		connectionToWebhook.disconnect();
-		
+
 		String result = "The response code is: "+responseCode;
-		
+
 		if(responseCode != 200)
 		{
 			throw new CustomMessageException(result);
 		}
-		
+
 		return result;
 	}
-	    
+
     public boolean postNotification(String trigger, Map executionData, Map config){
-    	
+
     	try
     	{
-    		String formattedMessage = formatMessage(messageBody,executionData);	
-    		sendMessage(webhookUrl,contentType,formattedMessage);
+    		String formattedMessage = formatMessage(messageBody,executionData);
+    		sendMessage(environment,webhookProdUrl,webhookPreProdUrl,requestMethod,authentication,user,password,token,contentType,accept,formattedMessage);
     	}
 		catch ( SecurityException | IllegalArgumentException | CustomMessageException | IOException e)
 		{
 			e.printStackTrace();
 		}
-        
+
     	return true;
     }
 }

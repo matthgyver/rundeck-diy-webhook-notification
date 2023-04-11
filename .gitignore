@@ -8,3 +8,5 @@ build/classes/
 build/libs/
 build/tmp/
 build/output/
+tmp
+build/reports

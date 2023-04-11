@@ -1,7 +1,8 @@
+
 buildscript {
     repositories {
         maven { url 'https://plugins.gradle.org/m2/'}
-        maven { url 'http://dl.bintray.com/content/aalmiray/kordamp' }
+        maven { url 'https://github.com/kordamp/kordamp-gradle-plugins/releases/tag/v0.50.0' }
     }
 
     dependencies {
@@ -39,15 +40,23 @@ configurations{
     }
 }
 
+// repositories {
+//     mavenCentral()
+// }
+
 repositories {
-    mavenCentral()
+   maven {
+      url = 'https://repo.maven.apache.org/maven2'
+   }
 }
 
+
 dependencies {
-    compile group: 'org.rundeck', name: 'rundeck-core', version: '2.6.9'
-	pluginLibs(
-	 'nl.big-o:liqp:0.7.5'
-	)
+    compile(group:'org.rundeck', name: 'rundeck-core', version: '3.4.0-20210614')
+    // compile 'com.github.bkiers:liqp:0.6.10'
+        pluginLibs(
+        'nl.big-o:liqp:0.7.5'
+        )
 }
 
 task copyIndexHtml(type: Copy){
@@ -100,11 +109,11 @@ jar {
     }
 }
 
-task createChecksum(type: Checksum) {
-  files = jar.outputs.files
-  outputDir = new File("${project.buildDir}/libs")
-  algorithm = Checksum.Algorithm.SHA256
-}
+// task createChecksum(type: Checksum) {
+//   files = jar.outputs.files
+//   outputDir = new File("${project.buildDir}/libs")
+//   algorithm = Checksum.Algorithm.SHA256
+// }
 
 //set task dependencies
 copyIndexHtml.dependsOn(generateLicenseReport)
