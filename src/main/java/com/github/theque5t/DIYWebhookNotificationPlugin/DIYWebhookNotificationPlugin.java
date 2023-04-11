@@ -29,6 +29,7 @@ import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.plugins.notification.NotificationPlugin;
 import com.dtolabs.rundeck.plugins.descriptions.PluginDescription;
 import com.dtolabs.rundeck.plugins.descriptions.PluginProperty;
+import com.dtolabs.rundeck.plugins.descriptions.SelectValues;
 import com.dtolabs.rundeck.plugins.descriptions.TextArea;
 import com.dtolabs.rundeck.plugins.descriptions.RenderingOption;
 import static com.dtolabs.rundeck.core.plugins.configuration.StringRenderingConstants.DISPLAY_TYPE_KEY;
@@ -54,7 +55,9 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 	@PluginProperty(
 			name = "webhookProdUrl",
 			title = "Webhook Prod URL",
-			description = "The webhook url for production environment. Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX",
+			description = "The webhook url for production environment.\n"
+						+ " Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX\n"
+						+ " Hidden because may contain sensitive information ",
 			required = false)
 	@RenderingOption(key = DISPLAY_TYPE_KEY, value = "PASSWORD")
 	private String webhookProdUrl;
@@ -62,7 +65,9 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 	@PluginProperty(
 		name = "webhookPreProdUrl",
 		title = "Webhook Pre Prod URL",
-		description = "The webhook url for pre-production environment. Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX",
+		description = "The webhook url for pre-production environment.\n"
+		+ " Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX\n"
+		+ " Hidden because may contain sensitive information ",
 		required = false)
 	@RenderingOption(key = DISPLAY_TYPE_KEY, value = "PASSWORD")
 	private String webhookPreProdUrl;
@@ -71,18 +76,19 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 	@PluginProperty(
 		name = "requestMethod",
 		title = "HTTP Method",
-		description = "HTTP request method. Example: POST, PUT, PATCH ...",
+		description = "HTTP request method",
 		defaultValue = "POST",
-		required = false)
+		required = true)
+	@SelectValues(values = {"POST","PUT","PATCH"}, freeSelect = true)
 	private String requestMethod;
 
 	@PluginProperty(
 		name = "authentication",
 		title = "Authentication",
-		description = "Authentication method (None|Basic|Bearer)",
-		// selectValues = {"None","Basic","Bearer"},
+		description = "Authentication method",
 		defaultValue = "None",
 		required = true)
+	@SelectValues(values = {"None","Basic","Bearer"})
 	private String authentication;
 
 	@PluginProperty(
@@ -97,6 +103,7 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 		title = "Password",
 		description = "User password (Basic method only)",
 		required = false)
+	@RenderingOption(key = DISPLAY_TYPE_KEY, value = "PASSWORD")
 	private String password;
 
 	@PluginProperty(
@@ -104,6 +111,7 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 		title = "Token",
 		description = "The authorization token (Bearer method only)",
 		required = false)
+	@RenderingOption(key = DISPLAY_TYPE_KEY, value = "PASSWORD")
 	private String token;
 
     @PluginProperty(
@@ -134,19 +142,19 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
     					+ " 3. Any template markup will be rendered.  \n"
     					+ "___  \n"
     					+ "#### Embedded Property References  \n"
-    					+ "You can add [embedded property references](https://rundeck.org/docs/developer/notification-plugin.html) to your message following this syntax: `${group.key}`  \n"
+    					+ "You can add [embedded property references](https://docs.rundeck.com/docs/developer/05-notification-plugins.html) to your message following this syntax: `${group.key}`  \n"
     					+ "  \n"
     					+ "Example for \"On Start\": `{\"text\":\"Job ${job.name}(#${job.execid}): Started\"}`  \n"
     					+ "___  \n"
     					+ "#### Execution Data References  \n"
-    					+ "You can add [execution data references](https://rundeck.org/docs/developer/notification-plugin.html) to your message following this syntax: `$map.key$`  \n"
+    					+ "You can add [execution data references](https://docs.rundeck.com/docs/developer/05-notification-plugins.html) to your message following this syntax: `$map.key$`  \n"
     					+ "  \n"
     					+ "Examples:  \n"
     					+ " - `{\"text\":\"Job ${job.name}(#${job.execid}): $execution.status$\"}`  \n"
     					+ " - `{\"text\":\"Job ${job.name}(#$execution.id$): $execution.status$\"}`  \n"
     					+ " - `{\"text\":\"Job ${job.name}(#${job.execid}) from Group $execution.context.job.group$: $execution.status$\"}`  \n"
     					+ "  \n"
-    					+ "[Refer here](https://rundeck.org/docs/developer/notification-plugin.html#execution-data) and [here](https://rundeck.org/docs/manual/creating-job-workflows.html#context-variables) to see what data is available.  \n"
+    					+ "[Refer here](https://docs.rundeck.com/docs/developer/05-notification-plugins.html#notifications-thread-feature) and [here](https://docs.rundeck.com/docs/manual/job-workflows.html#context-variables) to see what data is available.  \n"
     					+ "You can also supply a reference that equals an entire map. For example:  \n"
     					+ "```\n"
     					+ "{\"text\":\"Job: ${job.name} \nId: $execution.job.id$\nStatus: $execution.status$\nJob Details: $execution.job$\"}\n"
@@ -225,7 +233,7 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 
 		HttpURLConnection connectionToWebhook;
 
-		if (theEnvironment == "pre-prod"){
+		if (theEnvironment.equals("pre-prod")){
 			connectionToWebhook = (HttpURLConnection) new URL(theWebhookPreProdUrl).openConnection();
 		}
 		else{
@@ -235,16 +243,17 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 		connectionToWebhook.setConnectTimeout(5000);
 		connectionToWebhook.setReadTimeout(5000);
 		connectionToWebhook.setRequestMethod(theRequestMethod);
-		if (theAuthentication != "None"){
+		if (!theAuthentication.equals("None")){
 			String authenticationStr = theAuthentication + " ";
-			if (theAuthentication == "Basic"){
+			if (theAuthentication.equals("Basic")){
 				authenticationStr += Base64.getEncoder().encodeToString((theUser+":"+thePassword).getBytes());
 			}
-			else if (theAuthentication == "Bearer"){
+			else if (theAuthentication.equals("Bearer")){
 				authenticationStr += theToken;
 			}
 			connectionToWebhook.setRequestProperty("Authorization", authenticationStr);
 		}
+
 		connectionToWebhook.setRequestProperty("Content-type", theContentType);
 		connectionToWebhook.setRequestProperty("Accept", theAccept);
 		connectionToWebhook.setDoOutput(true);
@@ -259,7 +268,7 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 
 		String result = "The response code is: "+responseCode;
 
-		if(responseCode != 200)
+		if(responseCode < 200 || responseCode > 299)
 		{
 			throw new CustomMessageException(result);
 		}
