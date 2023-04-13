@@ -46,6 +46,18 @@ import java.net.URL;
 public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 
 	@PluginProperty(
+		name = "enabled",
+		title = "Enabled",
+		description = "Should be set to 'False' if this job is called by another one\n"
+					+ "Advices:\n"
+					+ "* If the job is launched directly, set it to `True` to always send a HTTP request\n"
+					+ "* If the job **isn't launched directly** *(by a parent job)*, set it to `False` with a variable *(ex `${option.webhook_response}`)* so that only the parent job will responds"
+					+ "\n",
+		defaultValue = "True",
+		required = true)
+	private String enabled;
+
+	@PluginProperty(
 		name = "environment",
 		title = "Environment",
 		description = "Environment execution. (if set to 'pre-prod', the webhook Pre Prod URL will be used else the prod URL)",
@@ -66,8 +78,8 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 		name = "webhookPreProdUrl",
 		title = "Webhook Pre Prod URL",
 		description = "The webhook url for pre-production environment.\n"
-		+ " Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX\n"
-		+ " Hidden because may contain sensitive information ",
+					+ " Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX\n"
+					+ " Hidden because may contain sensitive information ",
 		required = false)
 	@RenderingOption(key = DISPLAY_TYPE_KEY, value = "PASSWORD")
 	private String webhookPreProdUrl;
@@ -278,14 +290,16 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 
     public boolean postNotification(String trigger, Map executionData, Map config){
 
-    	try
-    	{
-    		String formattedMessage = formatMessage(messageBody,executionData);
-    		sendMessage(environment,webhookProdUrl,webhookPreProdUrl,requestMethod,authentication,user,password,token,contentType,accept,formattedMessage);
-    	}
-		catch ( SecurityException | IllegalArgumentException | CustomMessageException | IOException e)
-		{
-			e.printStackTrace();
+		if ( enabled.equals("True")){
+			try
+			{
+				String formattedMessage = formatMessage(messageBody,executionData);
+				sendMessage(environment,webhookProdUrl,webhookPreProdUrl,requestMethod,authentication,user,password,token,contentType,accept,formattedMessage);
+			}
+			catch ( SecurityException | IllegalArgumentException | CustomMessageException | IOException e)
+			{
+				e.printStackTrace();
+			}
 		}
 
     	return true;

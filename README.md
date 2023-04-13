@@ -4,6 +4,14 @@
 
 [Rundeck](https://www.rundeck.com/) [notification plugin](https://rundeck.org/docs/developer/notification-plugin.html) for the DIYer, because it allows you to supply your own custom messages to be sent to a webhook.
 
+
+## Build
+
+```
+$ docker build -t rundeck-diy-webhook-notification-plugin:latest .
+$ docker run --rm -v `pwd`:/home/rundeck-diy-webhook-notification-plugin rundeck-diy-webhook-notification-plugin:latest
+
+```
 ## Installation
 
 1. Download the [plugin file](https://github.com/theque5t/rundeck-diy-webhook-notification/releases/download/v1.0.1/rundeck-diy-webhook-notification-1.0.1.jar)
@@ -23,22 +31,22 @@ mv rundeck-diy-webhook-notification-1.0.1.jar /var/lib/rundeck/libext
 ## Usage
 ### Provider Name: `DIYWebhookNotificationPlugin`
 ### Plugin Properties:
- - __Webhook URL:__ The webhook url. Example: `https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX`  
- configure project: `project.plugin.Notification.DIYWebhookNotificationPlugin.webhookUrl=value`  
- configure framework: `framework.plugin.Notification.DIYWebhookNotificationPlugin.webhookUrl=value`  
-  
- - __Content Type:__ The content type header. Example: `application/json`  
- configure project: `project.plugin.Notification.DIYWebhookNotificationPlugin.contentType=value`  
- configure framework: `framework.plugin.Notification.DIYWebhookNotificationPlugin.contentType=value`  
-  
- - __Message Body:__ The message body. Example: `{"text":"Hello world!"}`  
- configure project: `project.plugin.Notification.DIYWebhookNotificationPlugin.messageBody=value`  
- configure framework: `framework.plugin.Notification.DIYWebhookNotificationPlugin.messageBody=value`  
- 
+ - __Webhook URL:__ The webhook url. Example: `https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX`
+ configure project: `project.plugin.Notification.DIYWebhookNotificationPlugin.webhookUrl=value`
+ configure framework: `framework.plugin.Notification.DIYWebhookNotificationPlugin.webhookUrl=value`
+
+ - __Content Type:__ The content type header. Example: `application/json`
+ configure project: `project.plugin.Notification.DIYWebhookNotificationPlugin.contentType=value`
+ configure framework: `framework.plugin.Notification.DIYWebhookNotificationPlugin.contentType=value`
+
+ - __Message Body:__ The message body. Example: `{"text":"Hello world!"}`
+ configure project: `project.plugin.Notification.DIYWebhookNotificationPlugin.messageBody=value`
+ configure framework: `framework.plugin.Notification.DIYWebhookNotificationPlugin.messageBody=value`
+
  >![picture](docs/images/configuration.png)
  ___
 ### Building the Message
-The execution order and summary of what occurs when building the final message body is as follows: 
+The execution order and summary of what occurs when building the final message body is as follows:
  1. Any embedded property references will be replaced with the runtime value.
  2. Any execution data references will be replaced with the runtime value.
  3. Any template markup will be rendered.
@@ -46,7 +54,7 @@ ___
 ### Embedded Property References
 You can add [embedded property references](https://rundeck.org/docs/developer/notification-plugin.html) to your message following this syntax: `${group.key}`
 
-Example for "On Start": 
+Example for "On Start":
 ```
 {"text":"Job ${job.name}(#${job.execid}): Started"}
 ```
@@ -96,9 +104,9 @@ ___
 
 __Notification:__ `On Start`, `On Success`, `On Failure`
 
-__Webhook URL:__ `https://hooks.slack.com/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX` 
+__Webhook URL:__ `https://hooks.slack.com/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX`
 
-__Content Type:__ `application/json` 
+__Content Type:__ `application/json`
 
 __Message Body:__
 ```
@@ -143,8 +151,8 @@ __Message Body:__
     ]
 }
 ```
-__Linking to the Slack user:__ `"value":"{% assign user = "$execution.user$" %}{% if user == 'admin' %}<@XX00XXX0X>{% else %}{{ user }}{% endif %}"` from the above example is template markup that replaces the Rundeck user value with the correlating Slack member ID. The Slack member ID can be found on their Slack profile. This shows how you can link the job notifications to the Rundeck user's Slack account.  
-  
+__Linking to the Slack user:__ `"value":"{% assign user = "$execution.user$" %}{% if user == 'admin' %}<@XX00XXX0X>{% else %}{{ user }}{% endif %}"` from the above example is template markup that replaces the Rundeck user value with the correlating Slack member ID. The Slack member ID can be found on their Slack profile. This shows how you can link the job notifications to the Rundeck user's Slack account.
+
 ![picture](docs/images/slack-example-1.png)
 
 ___
@@ -154,9 +162,9 @@ This example makes use of Slack's new [Block Kit](https://api.slack.com/block-ki
 
 __Notification:__ `On Start`
 
-__Webhook URL:__ `https://hooks.slack.com/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX` 
+__Webhook URL:__ `https://hooks.slack.com/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX`
 
-__Content Type:__ `application/json` 
+__Content Type:__ `application/json`
 
 __Message Body:__
 ```
@@ -221,9 +229,9 @@ __Message Body:__
 
 __Notification:__ `On Success`, `On Failure`
 
-__Webhook URL:__ `https://hooks.slack.com/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX` 
+__Webhook URL:__ `https://hooks.slack.com/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX`
 
-__Content Type:__ `application/json` 
+__Content Type:__ `application/json`
 
 __Message Body:__
 ```
