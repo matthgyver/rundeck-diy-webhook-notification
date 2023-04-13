@@ -200,7 +200,7 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
         Matcher executionDataReferenceMatches = executionDataReferencePattern.matcher(theMessageBody);
         StringBuffer theMessageBodyWithExecutionDataBuffer = new StringBuffer(theMessageBody.length());
 
-        while(executionDataReferenceMatches.find())
+		while(executionDataReferenceMatches.find())
         {
         	String executionDataReferenceMatch = executionDataReferenceMatches.group(1);
 	        String[] executionDataReferenceCommand = executionDataReferenceMatch.split("\\.");
@@ -209,6 +209,7 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 	        int i = 0;
 	        do {
 	        	String theCurrentKey = executionDataReferenceCommand[i];
+
 	        	i++;
 
 	        	if(theCurrentMap.containsKey(theCurrentKey) && i < executionDataReferenceCommand.length)
