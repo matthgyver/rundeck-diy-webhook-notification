@@ -67,21 +67,15 @@ public class DIYWebhookNotificationPlugin implements NotificationPlugin{
 	@PluginProperty(
 			name = "webhookProdUrl",
 			title = "Webhook Prod URL",
-			description = "The webhook url for production environment.\n"
-						+ " Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX\n"
-						+ " Hidden because may contain sensitive information ",
+			description = "The webhook url for production environment. (Use secure variable if URL contain token !)",
 			required = false)
-	@RenderingOption(key = DISPLAY_TYPE_KEY, value = "PASSWORD")
 	private String webhookProdUrl;
 
 	@PluginProperty(
 		name = "webhookPreProdUrl",
 		title = "Webhook Pre Prod URL",
-		description = "The webhook url for pre-production environment.\n"
-					+ " Example: https://hostname/services/TXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX\n"
-					+ " Hidden because may contain sensitive information ",
+		description = "The webhook url for pre-production environment. (Use secure variable if URL contain token !)",
 		required = false)
-	@RenderingOption(key = DISPLAY_TYPE_KEY, value = "PASSWORD")
 	private String webhookPreProdUrl;
 
 

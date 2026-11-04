@@ -1,10 +1,5 @@
 # rundeck-diy-webhook-notification
 
- [![Build Status](https://travis-ci.org/theque5t/rundeck-diy-webhook-notification.svg?branch=master)](https://travis-ci.org/theque5t/rundeck-diy-webhook-notification)
-
-[Rundeck](https://www.rundeck.com/) [notification plugin](https://rundeck.org/docs/developer/notification-plugin.html) for the DIYer, because it allows you to supply your own custom messages to be sent to a webhook.
-
-
 ## Build
 
 ```
@@ -14,13 +9,13 @@ $ docker run --rm -v `pwd`:/home/rundeck-diy-webhook-notification-plugin rundeck
 ```
 ## Installation
 
-1. Download the [plugin file](https://github.com/theque5t/rundeck-diy-webhook-notification/releases/download/v1.0.1/rundeck-diy-webhook-notification-1.0.1.jar)
+1. Download the [plugin file](https://github.com/matthgyver/rundeck-diy-webhook-notification/releases/download/v1.0.2/rundeck-diy-webhook-notification-plugin.jar)
 
 ```sh
-wget "https://github.com/theque5t/rundeck-diy-webhook-notification/releases/download/v1.0.1/rundeck-diy-webhook-notification-1.0.1.jar"
+wget "https://github.com/matthgyver/rundeck-diy-webhook-notification/releases/download/v1.0.2/rundeck-diy-webhook-notification-plugin.jar"
 ```
 
-2. Put the plugin file, rundeck-diy-webhook-notification-1.0.1.jar, into the [plugin directory](https://rundeck.org/docs/developer/plugin-development.html)
+2. Use webui or put the plugin file, rundeck-diy-webhook-notification-plugin.jar, into the [plugin directory](https://rundeck.org/docs/developer/plugin-development.html)
 
 ```sh
 mv rundeck-diy-webhook-notification-1.0.1.jar /var/lib/rundeck/libext

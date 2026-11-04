@@ -2,7 +2,8 @@
 buildscript {
     repositories {
         maven { url 'https://plugins.gradle.org/m2/'}
-        maven { url 'https://github.com/kordamp/kordamp-gradle-plugins/releases/tag/v0.50.0' }
+        // maven { url 'https://github.com/kordamp/kordamp-gradle-plugins/releases/tag/v0.50.0' }
+        maven { url 'https://github.com/kordamp/kordamp-gradle-plugins/releases/tag/v0.54.0' }
     }
 
     dependencies {
